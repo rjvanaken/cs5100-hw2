@@ -160,35 +160,27 @@ def Q_learning(num_episodes=10000, gamma=0.9, epsilon=1, decay_rate=0.999):
     - Q_table (dict): Dictionary containing the Q-values for each state-action pair.
     """
 	Q_table = {}
-	
+	update_counts = {}
+	rewards_per_ep = []
 
-	'''
-
-
-
-
-
-
-
-
-
-
-
-	YOUR CODE HERE
-
-
-
-
-
-
-
-
-
-
-
-
-
-	'''
+	for i in range(num_episodes):
+		obs, reward, done, info = env.reset() # at the start, reset
+		done = False
+		while not done:
+			state = hash(obs)
+			num = np.random.random()
+			if num < epsilon or state not in Q_table:
+				action = np.random.choice(env.action_space)
+			else:
+				action = np.argmax(Q_table[state])
+			
+			alpha = 1 / (1 + update_counts.get((state, action), 0))
+			obs, new_reward, done, info = env.step(action)
+			next_state = hash(obs)
+			Q_table[state][action] = Q_table[state][action] + alpha * (reward + gamma * max(Q_table[next_state]) - Q_table[state][action])
+			update_counts[(state, action)] = update_counts.get((state, action), 0) + 1
+			reward += new_reward
+			rewards_per_ep.append(reward)
 
 	return Q_table
 
