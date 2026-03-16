@@ -170,17 +170,25 @@ def Q_learning(num_episodes=10000, gamma=0.9, epsilon=1, decay_rate=0.999):
 			state = hash(obs)
 			num = np.random.random()
 			if num < epsilon or state not in Q_table:
-				action = np.random.choice(env.action_space)
+				action = np.random.choice(env.action_space.n)
 			else:
 				action = np.argmax(Q_table[state])
 			
 			alpha = 1 / (1 + update_counts.get((state, action), 0))
 			obs, new_reward, done, info = env.step(action)
 			next_state = hash(obs)
+
+			if state not in Q_table:
+				Q_table[state] = np.zeros(env.action_space.n)
+			if next_state not in Q_table:
+				Q_table[next_state] = np.zeros(env.action_space.n)
+
 			Q_table[state][action] = Q_table[state][action] + alpha * (reward + gamma * max(Q_table[next_state]) - Q_table[state][action])
+			
 			update_counts[(state, action)] = update_counts.get((state, action), 0) + 1
 			reward += new_reward
 			rewards_per_ep.append(reward)
+
 
 	return Q_table
 
