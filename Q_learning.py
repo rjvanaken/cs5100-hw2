@@ -200,8 +200,8 @@ def Q_learning(num_episodes=10000, gamma=0.9, epsilon=1, decay_rate=0.999):
 Specify number of episodes and decay rate for training and evaluation.
 '''
 
-num_episodes = 1000
-decay_rate = 0.99
+num_episodes = 50000
+decay_rate = 0.99995
 
 '''
 Run training if train_flag is set; otherwise, run evaluation using saved Q-table.
@@ -282,7 +282,8 @@ if not train_flag:
 		
 	avg_reward = sum(rewards)/len(rewards)
 	print("Average reward:", avg_reward)
-	
+
+	print(f"Win rate: {sum(1 for r in rewards if r > 0) / len(rewards) * 100}%")
 	print(f"Average episode length: {sum(lengths)/len(lengths)}")
 	print(f"Unique states in Q-table: {len(Q_table)}")
 	print(f"Unique states not in Q-table: {unknown_states}")
