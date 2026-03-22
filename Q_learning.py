@@ -183,11 +183,12 @@ def Q_learning(num_episodes=10000, gamma=0.9, epsilon=1, decay_rate=0.999):
 			if next_state not in Q_table:
 				Q_table[next_state] = np.zeros(env.action_space.n)
 
-			Q_table[state][action] = Q_table[state][action] + alpha * (reward + gamma * max(Q_table[next_state]) - Q_table[state][action])
+			Q_table[state][action] = Q_table[state][action] + alpha * (new_reward + gamma * max(Q_table[next_state]) - Q_table[state][action])
 			
 			update_counts[(state, action)] = update_counts.get((state, action), 0) + 1
 			reward += new_reward
-			rewards_per_ep.append(reward)
+		rewards_per_ep.append(reward)
+		epsilon *= decay_rate
 
 
 	return Q_table
@@ -207,7 +208,7 @@ if train_flag:
 	Q_table = Q_learning(num_episodes=num_episodes, gamma=0.9, epsilon=1, decay_rate=decay_rate) # Run Q-learning
 
 	# Save the Q-table dict to a file
-	with open('Q_table_pickle', 'wb') as handle:
+	with open('Q_table.pickle', 'wb') as handle:
 		pickle.dump(Q_table, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
@@ -224,7 +225,7 @@ if not train_flag:
 	
 	rewards = []
 
-	filename = 'Q_table_.pickle'
+	filename = 'Q_table.pickle'
 	input(f"\n{BOLD}Currently loading Q-table from "+filename+f"{RESET}.  \n\nPress Enter to confirm, or Ctrl+C to cancel and load a different Q-table file.\n(set num_episodes and decay_rate in Q_learning.py).")
 	Q_table = np.load(filename, allow_pickle=True)
 
@@ -248,3 +249,7 @@ if not train_flag:
 		#print("Total reward:", total_reward)
 		rewards.append(total_reward)
 	avg_reward = sum(rewards)/len(rewards)
+	print("Average reward:", avg_reward)
+	print(f"Max reward: {max(rewards)}")
+	print(f"Min reward: {min(rewards)}")
+	print(f"Win rate: {sum(1 for r in rewards if r > 0) / len(rewards) * 100}%")
