@@ -1,6 +1,7 @@
 import sys
 import time
 import pickle
+from matplotlib import pyplot as plt
 import numpy as np
 from tqdm import tqdm
 from vis_gym import *
@@ -213,6 +214,14 @@ if train_flag:
 	with open('Q_table.pickle', 'wb') as handle:
 		pickle.dump(Q_table, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+	# generate graph
+	plt.plot(rewards_per_ep)
+	plt.xlabel('Episode')
+	plt.ylabel('Total Reward')
+	plt.title('Training Rewards per Episode')
+	plt.savefig('training_rewards.png')
+	plt.show()
+
 
 '''
 Evaluation mode: play episodes using the saved Q-table. Useful for debugging/visualization.
@@ -250,7 +259,6 @@ if not train_flag:
 			
 			obs, reward, done, info = env.step(action)
 			episode_length += 1
-			
 			total_reward += reward
 			if gui_flag:
 				refresh(obs, reward, done, info, delay=.1)  # Update the game screen [GUI only]
