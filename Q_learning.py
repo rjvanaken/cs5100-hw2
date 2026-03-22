@@ -164,6 +164,8 @@ def Q_learning(num_episodes=10000, gamma=0.9, epsilon=1, decay_rate=0.999):
 	rewards_per_ep = []
 
 	for i in range(num_episodes):
+
+		
 		obs, reward, done, info = env.reset() # at the start, reset
 		done = False
 		while not done:
@@ -191,7 +193,7 @@ def Q_learning(num_episodes=10000, gamma=0.9, epsilon=1, decay_rate=0.999):
 		epsilon *= decay_rate
 
 
-	return Q_table
+	return Q_table, rewards_per_ep
 
 '''
 Specify number of episodes and decay rate for training and evaluation.
@@ -205,7 +207,7 @@ Run training if train_flag is set; otherwise, run evaluation using saved Q-table
 '''
 
 if train_flag:
-	Q_table = Q_learning(num_episodes=num_episodes, gamma=0.9, epsilon=1, decay_rate=decay_rate) # Run Q-learning
+	Q_table, rewards_per_ep = Q_learning(num_episodes=num_episodes, gamma=0.9, epsilon=1, decay_rate=decay_rate) # Run Q-learning
 
 	# Save the Q-table dict to a file
 	with open('Q_table.pickle', 'wb') as handle:
@@ -224,6 +226,9 @@ def softmax(x, temp=1.0):
 if not train_flag:
 	
 	rewards = []
+	lengths = []
+	unknown_states = 0
+	total_actions = 0
 
 	filename = 'Q_table.pickle'
 	input(f"\n{BOLD}Currently loading Q-table from "+filename+f"{RESET}.  \n\nPress Enter to confirm, or Ctrl+C to cancel and load a different Q-table file.\n(set num_episodes and decay_rate in Q_learning.py).")
@@ -235,12 +240,16 @@ if not train_flag:
 		
 		while not done:
 			state = hash(obs)
+			total_actions += 1
+			if state not in Q_table:
+				unknown_states += 1
 			try:
 				action = np.random.choice(env.action_space.n, p=softmax(Q_table[state]))  # Select action using softmax over Q-values
 			except KeyError:
 				action = env.action_space.sample()  # Fallback to random action if state not in Q-table
 			
 			obs, reward, done, info = env.step(action)
+			episode_length += 1
 			
 			total_reward += reward
 			if gui_flag:
@@ -248,6 +257,8 @@ if not train_flag:
 
 		#print("Total reward:", total_reward)
 		rewards.append(total_reward)
+		lengths.append(episode_length)
+		
 	avg_reward = sum(rewards)/len(rewards)
 	print("Average reward:", avg_reward)
 	print(f"Max reward: {max(rewards)}")
