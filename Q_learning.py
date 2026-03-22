@@ -200,8 +200,8 @@ def Q_learning(num_episodes=10000, gamma=0.9, epsilon=1, decay_rate=0.999):
 Specify number of episodes and decay rate for training and evaluation.
 '''
 
-num_episodes = 50000
-decay_rate = 0.9999
+num_episodes = 1000
+decay_rate = 0.99
 
 '''
 Run training if train_flag is set; otherwise, run evaluation using saved Q-table.
@@ -238,6 +238,8 @@ if not train_flag:
 	lengths = []
 	unknown_states = 0
 	total_actions = 0
+	heal_states = []
+	guard_states = {1: [], 2: [], 3: [], 4: []}
 
 	filename = 'Q_table.pickle'
 	input(f"\n{BOLD}Currently loading Q-table from "+filename+f"{RESET}.  \n\nPress Enter to confirm, or Ctrl+C to cancel and load a different Q-table file.\n(set num_episodes and decay_rate in Q_learning.py).")
@@ -253,6 +255,15 @@ if not train_flag:
 			total_actions += 1
 			if state not in Q_table:
 				unknown_states += 1
+
+			if obs.get('at_heal'):
+				if state in Q_table:
+					heal_states.append(Q_table[state])
+			if obs.get('guard_in_cell'):
+				guard_id = int(str(obs.get('guard_in_cell'))[-1])
+				if state in Q_table:
+					guard_states[guard_id].append(Q_table[state])
+
 			try:
 				action = np.random.choice(env.action_space.n, p=softmax(Q_table[state]))  # Select action using softmax over Q-values
 			except KeyError:
@@ -264,12 +275,23 @@ if not train_flag:
 			if gui_flag:
 				refresh(obs, reward, done, info, delay=.1)  # Update the game screen [GUI only]
 
+
 		#print("Total reward:", total_reward)
 		rewards.append(total_reward)
 		lengths.append(episode_length)
 		
 	avg_reward = sum(rewards)/len(rewards)
 	print("Average reward:", avg_reward)
-	print(f"Max reward: {max(rewards)}")
-	print(f"Min reward: {min(rewards)}")
-	print(f"Win rate: {sum(1 for r in rewards if r > 0) / len(rewards) * 100}%")
+	
+	print(f"Average episode length: {sum(lengths)/len(lengths)}")
+	print(f"Unique states in Q-table: {len(Q_table)}")
+	print(f"Unique states not in Q-table: {unknown_states}")
+	print(f"Percentage of actions from unknown states: {unknown_states/total_actions*100}%")
+	if heal_states:
+		heal_avg = np.mean(heal_states, axis=0)
+		print(f"Heal state avg Q-values: {heal_avg}")
+
+	for g in range(1, 5):
+		if guard_states[g]:
+			guard_avg = np.mean(guard_states[g], axis=0)
+			print(f"G{g} avg Q-values: {guard_avg}")
