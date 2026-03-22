@@ -246,6 +246,7 @@ if not train_flag:
 	for episode in tqdm(range(10000)):
 		obs, reward, done, info = env.reset()
 		total_reward = 0
+		episode_length = 0
 		
 		while not done:
 			state = hash(obs)
