@@ -200,8 +200,8 @@ def Q_learning(num_episodes=10000, gamma=0.9, epsilon=1, decay_rate=0.999):
 Specify number of episodes and decay rate for training and evaluation.
 '''
 
-num_episodes = 1000
-decay_rate = 0.99
+num_episodes = 50000
+decay_rate = 0.9999
 
 '''
 Run training if train_flag is set; otherwise, run evaluation using saved Q-table.
